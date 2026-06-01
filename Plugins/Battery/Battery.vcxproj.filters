@@ -42,6 +42,12 @@
     <ClInclude Include="BatteryItem.h">
       <Filter>BatteryItem</Filter>
     </ClInclude>
+    <ClInclude Include="BatteryQuery.h">
+      <Filter>Battery</Filter>
+    </ClInclude>
+    <ClInclude Include="BatteryTimeItem.h">
+      <Filter>BatteryItem</Filter>
+    </ClInclude>
     <ClInclude Include="DataManager.h">
       <Filter>DataManager</Filter>
     </ClInclude>
@@ -69,6 +75,12 @@
       <Filter>Battery</Filter>
     </ClCompile>
     <ClCompile Include="BatteryItem.cpp">
+      <Filter>BatteryItem</Filter>
+    </ClCompile>
+    <ClCompile Include="BatteryQuery.cpp">
+      <Filter>Battery</Filter>
+    </ClCompile>
+    <ClCompile Include="BatteryTimeItem.cpp">
       <Filter>BatteryItem</Filter>
     </ClCompile>
     <ClCompile Include="DataManager.cpp">

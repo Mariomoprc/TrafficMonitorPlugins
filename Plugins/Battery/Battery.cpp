@@ -23,6 +23,8 @@ IPluginItem* CBattery::GetItem(int index)
     {
     case 0:
         return &m_item;
+    case 1:
+        return &m_time_item;
     default:
         break;
     }
@@ -39,10 +41,8 @@ const wchar_t* CBattery::GetTooltipInfo()
 
 void CBattery::DataRequired()
 {
-    //获取系统电量
+    //获取系统电量（兼容原有电池百分比显示）
     GetSystemPowerStatus(&g_data.m_sysPowerStatus);
-    //g_data.m_sysPowerStatus.BatteryFlag = 1;
-    //g_data.m_sysPowerStatus.BatteryLifePercent = 80;
     //生成鼠标提示信息
     std::wstringstream wss;
     wss << g_data.StringRes(IDS_BATTERY).GetString() << L": " << g_data.GetBatteryString();
@@ -53,6 +53,87 @@ void CBattery::DataRequired()
     if (g_data.m_sysPowerStatus.BatteryFullLifeTime != -1)
         wss << std::endl << g_data.StringRes(IDS_BATTERY_FULL_LIFE_TIME).GetString() << L": " << CCommon::TimeFormat(g_data.m_sysPowerStatus.BatteryFullLifeTime);
     m_tooltop_info = wss.str();
+
+    // IOCTL 精确查询电池数据用于剩余时间显示
+    CBatteryQuery::BatteryData bd;
+    if (m_batteryQuery.QueryAll(bd))
+    {
+        double seconds = m_batteryQuery.GetSmoothedRemainingSeconds();
+        if (m_batteryQuery.IsCharging())
+        {
+            if (m_batteryQuery.IsFull())
+            {
+                g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_FULL).GetString();
+            }
+            else if (seconds > 0)
+            {
+                g_data.m_time_string = L"+" + FormatTimeString(seconds);
+            }
+            else
+            {
+                g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_NA).GetString();
+            }
+        }
+        else if (m_batteryQuery.IsOnBattery())
+        {
+            if (seconds > 0)
+            {
+                g_data.m_time_string = FormatTimeString(seconds);
+            }
+            else
+            {
+                g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_NA).GetString();
+            }
+        }
+        else
+        {
+            g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_FULL).GetString();
+        }
+    }
+    else
+    {
+        // 回退：使用 GetSystemPowerStatus 的数据
+        if (g_data.m_sysPowerStatus.BatteryFlag == 128)
+        {
+            g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_NA).GetString();
+        }
+        else if (g_data.m_sysPowerStatus.BatteryLifeTime != (DWORD)-1)
+        {
+            g_data.m_time_string = FormatTimeString(static_cast<double>(g_data.m_sysPowerStatus.BatteryLifeTime));
+        }
+        else
+        {
+            g_data.m_time_string = L"--";
+        }
+    }
+}
+
+std::wstring CBattery::FormatTimeString(double seconds)
+{
+    if (seconds <= 0)
+        return L"--";
+
+    int total_seconds = static_cast<int>(seconds);
+    int days = total_seconds / 86400;
+    int hours = (total_seconds % 86400) / 3600;
+    int minutes = (total_seconds % 3600) / 60;
+
+    std::wstringstream wss;
+    if (days > 0)
+    {
+        wss << days << L"d " << hours << L"h";
+    }
+    else if (hours > 0)
+    {
+        wss << hours << L"h " << minutes << L"m";
+    }
+    else
+    {
+        if (minutes < 1)
+            minutes = 1;
+        wss << minutes << L"m";
+    }
+    return wss.str();
 }
 
 ITMPlugin::OptionReturn CBattery::ShowOptionsDialog(void* hParent)

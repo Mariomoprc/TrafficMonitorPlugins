@@ -23,6 +23,9 @@
 #define IDS_HOUR                        113
 #define IDS_MINUTE                      114
 #define IDS_SECOND                      115
+#define IDS_BATTERY_TIME                116
+#define IDS_BATTERY_TIME_FULL           117
+#define IDS_BATTERY_TIME_NA             118
 #define IDC_COMBO1                      1000
 #define IDC_SHOW_PERCENT_CHECK          1002
 #define IDC_SHOW_CHARGING_ANIMATION_CHECK 1003

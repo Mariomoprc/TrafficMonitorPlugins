@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "PluginInterface.h"
 #include "BatteryItem.h"
+#include "BatteryTimeItem.h"
+#include "BatteryQuery.h"
 #include <string>
 
 class CBattery : public ITMPlugin
@@ -19,12 +21,14 @@ public:
     virtual void OnExtenedInfo(ExtendedInfoIndex index, const wchar_t* data) override;
     virtual void* GetPluginIcon() override;
 
-private:
+    static std::wstring FormatTimeString(double seconds);
 
 private:
     static CBattery m_instance;
     CBatteryItem m_item;
+    CBatteryTimeItem m_time_item;
     std::wstring m_tooltop_info;
+    CBatteryQuery m_batteryQuery;
 };
 
 #ifdef __cplusplus

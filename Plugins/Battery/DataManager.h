@@ -50,6 +50,7 @@ public:
 
     SettingData m_setting_data;
     SYSTEM_POWER_STATUS m_sysPowerStatus{};   // 系统电量信息
+    std::wstring m_time_string;               // 剩余时间显示文本
     ULONG_PTR m_gdiplusToken;
 
 private:

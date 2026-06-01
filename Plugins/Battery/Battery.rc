@@ -192,6 +192,13 @@ BEGIN
     IDS_SECOND              "秒"
 END
 
+STRINGTABLE
+BEGIN
+    IDS_BATTERY_TIME            "Battery time"
+    IDS_BATTERY_TIME_FULL       "Full"
+    IDS_BATTERY_TIME_NA         "N/A"
+END
+
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -280,6 +287,13 @@ BEGIN
     IDS_HOUR                "hour"
     IDS_MINUTE              "minute"
     IDS_SECOND              "second"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_BATTERY_TIME            "Battery time"
+    IDS_BATTERY_TIME_FULL       "Full"
+    IDS_BATTERY_TIME_NA         "N/A"
 END
 
 #endif    // 英语(美国) resources

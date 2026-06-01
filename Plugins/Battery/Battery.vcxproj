@@ -246,6 +246,8 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Battery.h" />
     <ClInclude Include="BatteryItem.h" />
+    <ClInclude Include="BatteryQuery.h" />
+    <ClInclude Include="BatteryTimeItem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common.cpp" />
@@ -263,6 +265,8 @@
     </ClCompile>
     <ClCompile Include="Battery.cpp" />
     <ClCompile Include="BatteryItem.cpp" />
+    <ClCompile Include="BatteryQuery.cpp" />
+    <ClCompile Include="BatteryTimeItem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Battery.rc" />
