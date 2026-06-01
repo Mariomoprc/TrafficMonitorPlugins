@@ -71,7 +71,7 @@ void CBattery::DataRequired()
             }
             else
             {
-                g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_NA).GetString();
+                g_data.m_time_string = g_data.m_setting_data.unknown_time_text;
             }
         }
         else if (m_batteryQuery.IsOnBattery())
@@ -93,7 +93,11 @@ void CBattery::DataRequired()
     else
     {
         // 回退：使用 GetSystemPowerStatus 的数据
-        if (g_data.m_sysPowerStatus.BatteryFlag == 128)
+        if (g_data.IsAcOnline() && g_data.m_sysPowerStatus.BatteryLifePercent < 100)
+        {
+            g_data.m_time_string = g_data.m_setting_data.unknown_time_text;
+        }
+        else if (g_data.m_sysPowerStatus.BatteryFlag == 128)
         {
             g_data.m_time_string = g_data.StringRes(IDS_BATTERY_TIME_NA).GetString();
         }
@@ -168,7 +172,7 @@ const wchar_t* CBattery::GetInfo(PluginInfoIndex index)
         return L"https://github.com/zhongyang219/TrafficMonitorPlugins";
         break;
     case TMI_VERSION:
-        return L"1.03";
+        return L"1.05";
     default:
         break;
     }

@@ -282,7 +282,7 @@ bool CBatteryQuery::QueryAll(BatteryData& data)
     }
 
     // Calculate remaining time
-    if (m_charging && totalRate < 0 && totalCapacity < totalFullCapacity)
+    if (m_charging && totalCapacity < totalFullCapacity)
     {
         ULONG remainingCap = totalFullCapacity - totalCapacity;
         double rateForCalc = (m_smooth_rate > 0) ? m_smooth_rate : 1.0;

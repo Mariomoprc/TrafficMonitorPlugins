@@ -57,6 +57,9 @@ void CDataManager::LoadConfig(const std::wstring& config_dir)
     m_setting_data.show_battery_in_tooltip = (GetPrivateProfileInt(L"config", L"show_battery_in_tooltip", 1, m_config_path.c_str()) != 0);
     m_setting_data.show_percent = (GetPrivateProfileInt(L"config", L"show_percent", 1, m_config_path.c_str()) != 0);
     m_setting_data.show_charging_animation = (GetPrivateProfileInt(L"config", L"show_charging_animation", 0, m_config_path.c_str()) != 0);
+    wchar_t buf[64];
+    GetPrivateProfileString(L"config", L"unknown_time_text", L"~", buf, 64, m_config_path.c_str());
+    m_setting_data.unknown_time_text = buf;
 }
 
 void CDataManager::SaveConfig() const
@@ -67,6 +70,7 @@ void CDataManager::SaveConfig() const
         WritePrivateProfileInt(L"config", L"show_battery_in_tooltip", m_setting_data.show_battery_in_tooltip, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"show_percent", m_setting_data.show_percent, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"show_charging_animation", m_setting_data.show_charging_animation, m_config_path.c_str());
+        WritePrivateProfileString(L"config", L"unknown_time_text", m_setting_data.unknown_time_text.c_str(), m_config_path.c_str());
     }
 }
 

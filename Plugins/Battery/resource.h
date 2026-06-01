@@ -32,6 +32,7 @@
 #define IDC_SYSLINK1                    1004
 #define IDC_HELP_SYSLINK                1004
 #define IDC_SHOW_TOOLTIPS_CHECK         1008
+#define IDC_UNKNOWN_TIME_EDIT           1005
 
 // Next default values for new objects
 // 

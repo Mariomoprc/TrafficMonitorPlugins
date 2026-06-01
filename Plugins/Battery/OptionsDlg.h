@@ -20,6 +20,7 @@ public:
 
 private:
     CComboBox m_battery_type_combo;
+    CEdit m_unknown_time_edit;
 
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
@@ -32,4 +33,5 @@ public:
     afx_msg void OnBnClickedShowPercentCheck();
     afx_msg void OnBnClickedShowChargingAnimationCheck();
     afx_msg void OnNMClickHelpSyslink(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnEnChangeUnknownTimeEdit();
 };

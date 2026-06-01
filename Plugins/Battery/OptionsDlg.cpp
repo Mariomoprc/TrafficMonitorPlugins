@@ -24,6 +24,7 @@ void COptionsDlg::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_COMBO1, m_battery_type_combo);
+    DDX_Control(pDX, IDC_UNKNOWN_TIME_EDIT, m_unknown_time_edit);
 }
 
 
@@ -33,6 +34,7 @@ BEGIN_MESSAGE_MAP(COptionsDlg, CDialog)
     ON_BN_CLICKED(IDC_SHOW_PERCENT_CHECK, &COptionsDlg::OnBnClickedShowPercentCheck)
     ON_BN_CLICKED(IDC_SHOW_CHARGING_ANIMATION_CHECK, &COptionsDlg::OnBnClickedShowChargingAnimationCheck)
     ON_NOTIFY(NM_CLICK, IDC_HELP_SYSLINK, &COptionsDlg::OnNMClickHelpSyslink)
+    ON_EN_CHANGE(IDC_UNKNOWN_TIME_EDIT, &COptionsDlg::OnEnChangeUnknownTimeEdit)
 END_MESSAGE_MAP()
 
 
@@ -52,8 +54,9 @@ BOOL COptionsDlg::OnInitDialog()
     CheckDlgButton(IDC_SHOW_TOOLTIPS_CHECK, m_data.show_battery_in_tooltip);
     CheckDlgButton(IDC_SHOW_PERCENT_CHECK, m_data.show_percent);
     CheckDlgButton(IDC_SHOW_CHARGING_ANIMATION_CHECK, m_data.show_charging_animation);
+    m_unknown_time_edit.SetWindowTextW(m_data.unknown_time_text.c_str());
 
-    return TRUE;  // return TRUE unless you set the focus to a control
+    return TRUE;  // return TRUE unless you set the focus to a widget
                   // 异常: OCX 属性页应返回 FALSE
 }
 
@@ -86,4 +89,12 @@ void COptionsDlg::OnNMClickHelpSyslink(NMHDR* pNMHDR, LRESULT* pResult)
 {
     ShellExecute(NULL, _T("open"), _T("https://github.com/zhongyang219/TrafficMonitorPlugins/wiki/%E7%94%B5%E6%B1%A0%E6%8F%92%E4%BB%B6"), NULL, NULL, SW_SHOW);
     *pResult = 0;
+}
+
+
+void COptionsDlg::OnEnChangeUnknownTimeEdit()
+{
+    CString text;
+    m_unknown_time_edit.GetWindowTextW(text);
+    m_data.unknown_time_text = text.GetString();
 }

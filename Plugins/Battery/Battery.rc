@@ -50,19 +50,21 @@ END
 // Dialog
 //
 
-IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 164, 86
+IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 164, 99
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "电池设置"
 FONT 9, "微软雅黑", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "确定",IDOK,52,65,50,14
-    PUSHBUTTON      "取消",IDCANCEL,107,65,50,14
+    DEFPUSHBUTTON   "确定",IDOK,52,82,50,14
+    PUSHBUTTON      "取消",IDCANCEL,107,82,50,14
     LTEXT           "电量显示样式:",IDC_STATIC,7,8,49,8
     COMBOBOX        IDC_COMBO1,58,7,99,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "在鼠标提示中显示电池信息",IDC_SHOW_TOOLTIPS_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,23,104,10
     CONTROL         "显示百分号",IDC_SHOW_PERCENT_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,35,103,10
     CONTROL         "显示充电动画",IDC_SHOW_CHARGING_ANIMATION_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,48,108,10
-    CONTROL         "<a>帮助</a>",IDC_HELP_SYSLINK,"SysLink",WS_TABSTOP,7,68,31,11
+    LTEXT           "Unknown:",IDC_STATIC,7,62,40,8
+    EDITTEXT        IDC_UNKNOWN_TIME_EDIT,50,60,107,14,ES_AUTOHSCROLL
+    CONTROL         "<a>帮助</a>",IDC_HELP_SYSLINK,"SysLink",WS_TABSTOP,7,82,31,11
 END
 
 
@@ -79,7 +81,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 157
         TOPMARGIN, 7
-        BOTTOMMARGIN, 79
+        BOTTOMMARGIN, 92
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -111,7 +113,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,3,0
+ FILEVERSION 1,0,5,0
  PRODUCTVERSION 1,0,3,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -129,12 +131,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "By ZhongYang"
             VALUE "FileDescription", "Battery Plugin for TrafficMonitor"
-            VALUE "FileVersion", "1.0.3.0"
+            VALUE "FileVersion", "1.0.5.0"
             VALUE "InternalName", "Battery.dll"
             VALUE "LegalCopyright", "Copyright (C) 2025 By ZhongYang"
             VALUE "OriginalFilename", "Battery.dll"
             VALUE "ProductName", "Battery Plugin for TrafficMonitor"
-            VALUE "ProductVersion", "1.0.3.0"
+            VALUE "ProductVersion", "1.0.5.0"
         END
     END
     BLOCK "VarFileInfo"
@@ -215,13 +217,13 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Dialog
 //
 
-IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 202, 87
+IDD_OPTIONS_DIALOG DIALOGEX 0, 0, 202, 100
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Battery settings"
 FONT 9, "Segoe UI", 400, 0, 0x0
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,87,66,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,145,66,50,14
+    DEFPUSHBUTTON   "OK",IDOK,87,82,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,145,82,50,14
     LTEXT           "Battery display style:",IDC_STATIC,8,8,76,8
     COMBOBOX        IDC_COMBO1,83,7,112,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Show battery information in tool tip",IDC_SHOW_TOOLTIPS_CHECK,
@@ -229,7 +231,9 @@ BEGIN
     CONTROL         "Show percent",IDC_SHOW_PERCENT_CHECK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,35,126,9
     CONTROL         "Show charging animation",IDC_SHOW_CHARGING_ANIMATION_CHECK,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,8,47,122,10
-    CONTROL         "<a>Help</a>",IDC_HELP_SYSLINK,"SysLink",WS_TABSTOP,7,70,34,10
+    LTEXT           "Charging unknown:",IDC_STATIC,8,61,77,8
+    EDITTEXT        IDC_UNKNOWN_TIME_EDIT,85,59,109,14,ES_AUTOHSCROLL
+    CONTROL         "<a>Help</a>",IDC_HELP_SYSLINK,"SysLink",WS_TABSTOP,7,82,34,10
 END
 
 
@@ -246,7 +250,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 195
         TOPMARGIN, 7
-        BOTTOMMARGIN, 80
+        BOTTOMMARGIN, 93
     END
 END
 #endif    // APSTUDIO_INVOKED
