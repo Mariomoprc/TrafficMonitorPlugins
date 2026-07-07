@@ -2,8 +2,8 @@
 
 用于在任务栏显示电池剩余时间的 TrafficMonitor 插件，支持进度条、自定义格式、深色/浅色模式自动适配。
 
-![任务栏效果](Plugins/BatteryTime/images/任务栏.gif)
-![设置界面](Plugins/BatteryTime/images/设置界面.gif)
+![任务栏效果](Plugins/BatteryTime/任务栏.gif)
+![设置界面](Plugins/BatteryTime/设置界面.gif)
 
 ## 功能
 
