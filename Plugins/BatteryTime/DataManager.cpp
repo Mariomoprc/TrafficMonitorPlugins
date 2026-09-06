@@ -68,15 +68,6 @@ void CDataManager::LoadConfig(const std::wstring& config_dir)
     m_setting_data.show_days = (GetPrivateProfileInt(L"config", L"show_days", 0, m_config_path.c_str()) != 0);
     m_setting_data.show_seconds = (GetPrivateProfileInt(L"config", L"show_seconds", 0, m_config_path.c_str()) != 0);
     m_setting_data.hide_zero = (GetPrivateProfileInt(L"config", L"hide_zero", 0, m_config_path.c_str()) != 0);
-    m_setting_data.pomodoro_enabled = (GetPrivateProfileInt(L"config", L"pomodoro_enabled", 0, m_config_path.c_str()) != 0);
-    m_setting_data.pomodoro_work_min = GetPrivateProfileInt(L"config", L"pomodoro_work_min", 25, m_config_path.c_str());
-    m_setting_data.pomodoro_break_min = GetPrivateProfileInt(L"config", L"pomodoro_break_min", 5, m_config_path.c_str());
-    m_setting_data.pomodoro_auto_cycle = (GetPrivateProfileInt(L"config", L"pomodoro_auto_cycle", 1, m_config_path.c_str()) != 0);
-    m_setting_data.pomodoro_notify = (GetPrivateProfileInt(L"config", L"pomodoro_notify", 1, m_config_path.c_str()) != 0);
-    if (m_setting_data.pomodoro_work_min < 1) m_setting_data.pomodoro_work_min = 1;
-    if (m_setting_data.pomodoro_work_min > 180) m_setting_data.pomodoro_work_min = 180;
-    if (m_setting_data.pomodoro_break_min < 1) m_setting_data.pomodoro_break_min = 1;
-    if (m_setting_data.pomodoro_break_min > 60) m_setting_data.pomodoro_break_min = 60;
 
     wchar_t buf_fmt[256];
     GetPrivateProfileString(L"config", L"custom_format", L"{h}h {m}m", buf_fmt, 256, m_config_path.c_str());
@@ -115,11 +106,6 @@ void CDataManager::SaveConfig() const
         WritePrivateProfileInt(L"config", L"show_days", m_setting_data.show_days, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"show_seconds", m_setting_data.show_seconds, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"hide_zero", m_setting_data.hide_zero, m_config_path.c_str());
-        WritePrivateProfileInt(L"config", L"pomodoro_enabled", m_setting_data.pomodoro_enabled, m_config_path.c_str());
-        WritePrivateProfileInt(L"config", L"pomodoro_work_min", m_setting_data.pomodoro_work_min, m_config_path.c_str());
-        WritePrivateProfileInt(L"config", L"pomodoro_break_min", m_setting_data.pomodoro_break_min, m_config_path.c_str());
-        WritePrivateProfileInt(L"config", L"pomodoro_auto_cycle", m_setting_data.pomodoro_auto_cycle, m_config_path.c_str());
-        WritePrivateProfileInt(L"config", L"pomodoro_notify", m_setting_data.pomodoro_notify, m_config_path.c_str());
         WritePrivateProfileString(L"config", L"custom_format", m_setting_data.custom_format.c_str(), m_config_path.c_str());
 
         WritePrivateProfileString(L"config", L"label_text", m_setting_data.label_text.c_str(), m_config_path.c_str());
@@ -272,128 +258,4 @@ void CDataManager::UpdatePreview()
 bool CDataManager::IsPreviewActive() const
 {
     return m_setting_data.preview_mode;
-}
-
-ULONGLONG CDataManager::PomodoroPhaseMs(PomodoroPhase ph) const
-{
-    int minutes = (ph == PomodoroPhase::BREAK) ? m_setting_data.pomodoro_break_min : m_setting_data.pomodoro_work_min;
-    if (minutes < 1) minutes = 1;
-    return static_cast<ULONGLONG>(minutes) * 60ULL * 1000ULL;
-}
-
-void CDataManager::PomodoroToggle()
-{
-    ULONGLONG now = GetTickCount64();
-    if (m_pomo_phase == PomodoroPhase::IDLE)
-    {
-        m_pomo_phase = PomodoroPhase::WORK;
-        m_pomo_remain_ms = PomodoroPhaseMs(PomodoroPhase::WORK);
-        m_pomo_end_ms = now + m_pomo_remain_ms;
-        m_pomo_running = true;
-    }
-    else if (m_pomo_running)
-    {
-        m_pomo_remain_ms = (m_pomo_end_ms > now) ? (m_pomo_end_ms - now) : 0;
-        m_pomo_running = false;
-    }
-    else
-    {
-        m_pomo_end_ms = now + m_pomo_remain_ms;
-        m_pomo_running = true;
-    }
-}
-
-void CDataManager::PomodoroSkip()
-{
-    if (m_pomo_phase == PomodoroPhase::WORK)
-    {
-        m_pomo_phase = PomodoroPhase::BREAK;
-        m_pomo_remain_ms = PomodoroPhaseMs(PomodoroPhase::BREAK);
-        m_pomo_end_ms = GetTickCount64() + m_pomo_remain_ms;
-        m_pomo_running = true;
-    }
-    else if (m_pomo_phase == PomodoroPhase::BREAK)
-    {
-        PomodoroReset();
-    }
-}
-
-void CDataManager::PomodoroReset()
-{
-    m_pomo_phase = PomodoroPhase::IDLE;
-    m_pomo_remain_ms = 0;
-    m_pomo_running = false;
-}
-
-bool CDataManager::PomodoroTick()
-{
-    if (!m_setting_data.pomodoro_enabled || !m_pomo_running)
-        return false;
-    ULONGLONG now = GetTickCount64();
-    if (now < m_pomo_end_ms)
-        return false;
-    if (m_pomo_phase == PomodoroPhase::WORK)
-    {
-        m_pomo_phase = PomodoroPhase::BREAK;
-        m_pomo_remain_ms = PomodoroPhaseMs(PomodoroPhase::BREAK);
-    }
-    else
-    {
-        if (!m_setting_data.pomodoro_auto_cycle)
-        {
-            PomodoroReset();
-            if (m_setting_data.pomodoro_notify)
-                MessageBeep(MB_OK);
-            return true;
-        }
-        m_pomo_phase = PomodoroPhase::WORK;
-        m_pomo_remain_ms = PomodoroPhaseMs(PomodoroPhase::WORK);
-    }
-    m_pomo_end_ms = now + m_pomo_remain_ms;
-    m_pomo_running = true;
-    if (m_setting_data.pomodoro_notify)
-        MessageBeep(MB_OK);
-    return true;
-}
-
-bool CDataManager::PomodoroVisible() const
-{
-    return m_setting_data.pomodoro_enabled && m_pomo_phase != PomodoroPhase::IDLE;
-}
-
-double CDataManager::PomodoroPercent() const
-{
-    ULONGLONG total = PomodoroPhaseMs(m_pomo_phase == PomodoroPhase::IDLE ? PomodoroPhase::WORK : m_pomo_phase);
-    if (total == 0)
-        return 0.0;
-    ULONGLONG remain = m_pomo_remain_ms;
-    if (m_pomo_running)
-    {
-        ULONGLONG now = GetTickCount64();
-        remain = (m_pomo_end_ms > now) ? (m_pomo_end_ms - now) : 0;
-    }
-    return static_cast<double>(remain) * 100.0 / static_cast<double>(total);
-}
-
-std::wstring CDataManager::PomodoroText() const
-{
-    ULONGLONG remain = m_pomo_remain_ms;
-    if (m_pomo_running)
-    {
-        ULONGLONG now = GetTickCount64();
-        remain = (m_pomo_end_ms > now) ? (m_pomo_end_ms - now) : 0;
-    }
-    ULONGLONG totalSec = (remain + 999) / 1000;
-    wchar_t buf[16];
-    swprintf_s(buf, L"%02llu:%02llu", totalSec / 60, totalSec % 60);
-    return buf;
-}
-
-std::wstring CDataManager::PomodoroPhaseName() const
-{
-    if (m_pomo_phase == PomodoroPhase::WORK)
-        return L"\x5DE5\x4F5C";
-    if (m_pomo_phase == PomodoroPhase::BREAK)
-        return L"\x4F11\x606F";
-    return L"";
 }

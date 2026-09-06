@@ -27,8 +27,6 @@ void COptionsDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_LABEL_TEXT_EDIT, m_label_text_edit);
     DDX_Control(pDX, IDC_LOW_BATTERY_THRESHOLD_EDIT, m_low_battery_threshold_edit);
     DDX_Control(pDX, IDC_CUSTOM_FORMAT_EDIT, m_custom_format_edit);
-    DDX_Control(pDX, IDC_POMO_WORK_EDIT, m_pomo_work_edit);
-    DDX_Control(pDX, IDC_POMO_BREAK_EDIT, m_pomo_break_edit);
     DDX_Control(pDX, IDC_PREVIEW_STATIC, m_preview_static);
 }
 
@@ -53,11 +51,6 @@ BEGIN_MESSAGE_MAP(COptionsDlg, CDialog)
     ON_BN_CLICKED(IDC_SHOW_SECONDS_CHECK, &COptionsDlg::OnBnClickedShowSecondsCheck)
     ON_BN_CLICKED(IDC_HIDE_ZERO_CHECK, &COptionsDlg::OnBnClickedHideZeroCheck)
     ON_EN_CHANGE(IDC_CUSTOM_FORMAT_EDIT, &COptionsDlg::OnEnChangeCustomFormatEdit)
-    ON_BN_CLICKED(IDC_POMODORO_CHECK, &COptionsDlg::OnBnClickedPomodoroCheck)
-    ON_EN_CHANGE(IDC_POMO_WORK_EDIT, &COptionsDlg::OnEnChangePomoWorkEdit)
-    ON_EN_CHANGE(IDC_POMO_BREAK_EDIT, &COptionsDlg::OnEnChangePomoBreakEdit)
-    ON_BN_CLICKED(IDC_POMO_CYCLE_CHECK, &COptionsDlg::OnBnClickedPomoCycleCheck)
-    ON_BN_CLICKED(IDC_POMO_NOTIFY_CHECK, &COptionsDlg::OnBnClickedPomoNotifyCheck)
 END_MESSAGE_MAP()
 
 BOOL COptionsDlg::OnInitDialog()
@@ -67,6 +60,7 @@ BOOL COptionsDlg::OnInitDialog()
     m_progress_style_combo.AddString(L"\x5B9E\x5FC3");
     m_progress_style_combo.AddString(L"\x6E10\x53D8");
     m_progress_style_combo.AddString(L"\x5706\x70B9");
+    m_progress_style_combo.AddString(L"\x5706\x73AF");
     m_progress_style_combo.SetCurSel(static_cast<int>(m_data.progress_style));
 
     m_time_format_combo.AddString(L"Xh Xm");
@@ -86,9 +80,6 @@ BOOL COptionsDlg::OnInitDialog()
     CheckDlgButton(IDC_SHOW_DAYS_CHECK, m_data.show_days);
     CheckDlgButton(IDC_SHOW_SECONDS_CHECK, m_data.show_seconds);
     CheckDlgButton(IDC_HIDE_ZERO_CHECK, m_data.hide_zero);
-    CheckDlgButton(IDC_POMODORO_CHECK, m_data.pomodoro_enabled);
-    CheckDlgButton(IDC_POMO_CYCLE_CHECK, m_data.pomodoro_auto_cycle);
-    CheckDlgButton(IDC_POMO_NOTIFY_CHECK, m_data.pomodoro_notify);
 
     CString str;
     str.Format(L"%d", m_data.progress_bar_height);
@@ -101,10 +92,6 @@ BOOL COptionsDlg::OnInitDialog()
     str.Format(L"%d", m_data.low_battery_threshold);
     m_low_battery_threshold_edit.SetWindowText(str);
     m_custom_format_edit.SetWindowText(m_data.custom_format.c_str());
-    str.Format(L"%d", m_data.pomodoro_work_min);
-    m_pomo_work_edit.SetWindowText(str);
-    str.Format(L"%d", m_data.pomodoro_break_min);
-    m_pomo_break_edit.SetWindowText(str);
 
     SetTimer(1, 1500, NULL);
 
@@ -525,39 +512,6 @@ void COptionsDlg::OnEnChangeCustomFormatEdit()
     m_time_format_combo.SetCurSel(6);
     m_data.time_format = TimeFormat::HM;
     RefreshPreview();
-}
-
-void COptionsDlg::OnBnClickedPomodoroCheck()
-{
-    m_data.pomodoro_enabled = (IsDlgButtonChecked(IDC_POMODORO_CHECK) != 0);
-}
-
-void COptionsDlg::OnEnChangePomoWorkEdit()
-{
-    CString text;
-    m_pomo_work_edit.GetWindowText(text);
-    int value = _ttoi(text);
-    if (value >= 1 && value <= 180)
-        m_data.pomodoro_work_min = value;
-}
-
-void COptionsDlg::OnEnChangePomoBreakEdit()
-{
-    CString text;
-    m_pomo_break_edit.GetWindowText(text);
-    int value = _ttoi(text);
-    if (value >= 1 && value <= 60)
-        m_data.pomodoro_break_min = value;
-}
-
-void COptionsDlg::OnBnClickedPomoCycleCheck()
-{
-    m_data.pomodoro_auto_cycle = (IsDlgButtonChecked(IDC_POMO_CYCLE_CHECK) != 0);
-}
-
-void COptionsDlg::OnBnClickedPomoNotifyCheck()
-{
-    m_data.pomodoro_notify = (IsDlgButtonChecked(IDC_POMO_NOTIFY_CHECK) != 0);
 }
 
 BOOL COptionsDlg::PreTranslateMessage(MSG* pMsg)
