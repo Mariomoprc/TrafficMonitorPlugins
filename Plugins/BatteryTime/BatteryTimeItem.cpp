@@ -32,6 +32,23 @@ const wchar_t* CBatteryTimeItem::GetItemValueSampleText() const
     return L"99h 59m";
 }
 
+int CBatteryTimeItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int flag)
+{
+    if (!g_data.m_setting_data.pomodoro_enabled)
+        return 0;
+    if (type == MT_LCLICKED)
+    {
+        g_data.PomodoroToggle();
+        return 1;
+    }
+    if (type == MT_DBCLICKED)
+    {
+        g_data.PomodoroSkip();
+        return 1;
+    }
+    return 0;
+}
+
 bool CBatteryTimeItem::IsCustomDraw() const
 {
     return true;
@@ -81,9 +98,17 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
     CRect rect(CPoint(x, y), CSize(w, h));
 
     double percent = 0.0;
-    if (g_data.IsPreviewActive())
+    std::wstring time_str;
+    bool pomo = g_data.PomodoroVisible();
+    if (pomo)
+    {
+        percent = g_data.PomodoroPercent();
+        time_str = g_data.PomodoroText();
+    }
+    else if (g_data.IsPreviewActive())
     {
         percent = g_data.m_preview_percent;
+        time_str = g_data.m_time_string;
     }
     else
     {
@@ -91,9 +116,8 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
             return;
         if (g_data.m_sysPowerStatus.BatteryFlag != 128)
             percent = g_data.m_sysPowerStatus.BatteryLifePercent;
+        time_str = g_data.m_time_string;
     }
-
-    std::wstring time_str = g_data.m_time_string;
 
     int font_height = g_data.DPI(g_data.m_setting_data.font_size);
     int progress_height = g_data.DPI(g_data.m_setting_data.progress_bar_height);
@@ -119,7 +143,7 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
 
     COLORREF text_color = g_data.GetTextColor();
 
-    if (g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
+    if (!pomo && g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
         text_color = g_data.m_setting_data.color_critical;
 
     pDC->SetBkMode(TRANSPARENT);

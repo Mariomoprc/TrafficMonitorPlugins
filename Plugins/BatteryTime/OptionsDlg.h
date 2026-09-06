@@ -24,6 +24,8 @@ private:
     CEdit m_label_text_edit;
     CEdit m_low_battery_threshold_edit;
     CEdit m_custom_format_edit;
+    CEdit m_pomo_work_edit;
+    CEdit m_pomo_break_edit;
 
     CStatic m_preview_static;
     double m_preview_percent{ 75.0 };
@@ -61,4 +63,9 @@ public:
     afx_msg void OnBnClickedShowSecondsCheck();
     afx_msg void OnBnClickedHideZeroCheck();
     afx_msg void OnEnChangeCustomFormatEdit();
+    afx_msg void OnBnClickedPomodoroCheck();
+    afx_msg void OnEnChangePomoWorkEdit();
+    afx_msg void OnEnChangePomoBreakEdit();
+    afx_msg void OnBnClickedPomoCycleCheck();
+    afx_msg void OnBnClickedPomoNotifyCheck();
 };
