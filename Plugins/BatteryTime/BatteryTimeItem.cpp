@@ -32,23 +32,6 @@ const wchar_t* CBatteryTimeItem::GetItemValueSampleText() const
     return L"99h 59m";
 }
 
-int CBatteryTimeItem::OnMouseEvent(MouseEventType type, int x, int y, void* hWnd, int flag)
-{
-    if (!g_data.m_setting_data.pomodoro_enabled)
-        return 0;
-    if (type == MT_LCLICKED)
-    {
-        g_data.PomodoroToggle();
-        return 1;
-    }
-    if (type == MT_DBCLICKED)
-    {
-        g_data.PomodoroSkip();
-        return 1;
-    }
-    return 0;
-}
-
 bool CBatteryTimeItem::IsCustomDraw() const
 {
     return true;
@@ -77,6 +60,13 @@ int CBatteryTimeItem::GetItemWidthEx(void* hDC) const
 
     int extra = g_data.DPI(g_data.m_setting_data.progress_bar_max_width);
     int width = text_size.cx + extra;
+    if (g_data.m_setting_data.progress_style == ProgressStyle::RING)
+    {
+        int diameter = g_data.DPI(g_data.m_setting_data.font_size) + g_data.DPI(10);
+        int need = text_size.cx + diameter + g_data.DPI(6);
+        if (width < need)
+            width = need;
+    }
     if (width < g_data.DPI(20))
         width = g_data.DPI(20);
     return width;
@@ -98,17 +88,10 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
     CRect rect(CPoint(x, y), CSize(w, h));
 
     double percent = 0.0;
-    std::wstring time_str;
-    bool pomo = g_data.PomodoroVisible();
-    if (pomo)
-    {
-        percent = g_data.PomodoroPercent();
-        time_str = g_data.PomodoroText();
-    }
-    else if (g_data.IsPreviewActive())
+    std::wstring time_str = g_data.m_time_string;
+    if (g_data.IsPreviewActive())
     {
         percent = g_data.m_preview_percent;
-        time_str = g_data.m_time_string;
     }
     else
     {
@@ -116,7 +99,6 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
             return;
         if (g_data.m_sysPowerStatus.BatteryFlag != 128)
             percent = g_data.m_sysPowerStatus.BatteryLifePercent;
-        time_str = g_data.m_time_string;
     }
 
     int font_height = g_data.DPI(g_data.m_setting_data.font_size);
@@ -143,10 +125,22 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
 
     COLORREF text_color = g_data.GetTextColor();
 
-    if (!pomo && g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
+    if (g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
         text_color = g_data.m_setting_data.color_critical;
 
     pDC->SetBkMode(TRANSPARENT);
+
+    bool is_ring = (g_data.m_setting_data.progress_style == ProgressStyle::RING);
+    int ring_d = 0;
+    if (is_ring)
+    {
+        ring_d = font_height + g_data.DPI(8);
+        int max_d = rect.Height() - g_data.DPI(4);
+        if (ring_d > max_d)
+            ring_d = max_d;
+        DrawRing(pDC, CRect(rect.left, rect.top, rect.left + ring_d, rect.top + rect.Height()), percent, dark_mode);
+        text_rect.left = rect.left + ring_d + g_data.DPI(4);
+    }
 
     CString display_str;
     if (g_data.m_setting_data.show_label)
@@ -158,11 +152,11 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
         pDC->SetTextColor(RGB(0, 0, 0));
         CRect shadow_rect = text_rect;
         shadow_rect.OffsetRect(1, 1);
-        pDC->DrawText(display_str, shadow_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+        pDC->DrawText(display_str, shadow_rect, (is_ring ? DT_LEFT : DT_CENTER) | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
     }
 
     pDC->SetTextColor(text_color);
-    pDC->DrawText(display_str, text_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    pDC->DrawText(display_str, text_rect, (is_ring ? DT_LEFT : DT_CENTER) | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
     CSize text_size = pDC->GetTextExtent(display_str);
     int text_width = text_size.cx;
@@ -181,7 +175,8 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
     else
         progress_y = text_rect.bottom + spacing;
 
-    DrawProgressBar(pDC, progress_x, progress_y, progress_width, progress_height, percent, dark_mode);
+    if (!is_ring)
+        DrawProgressBar(pDC, progress_x, progress_y, progress_width, progress_height, percent, dark_mode);
 
     pDC->SelectObject(pOldFont);
 }
@@ -267,5 +262,34 @@ void CBatteryTimeItem::DrawProgressBar(CDC* pDC, int x, int y, int width, int he
         }
         break;
     }
+    case ProgressStyle::RING:
+        break;
+    }
+}
+
+void CBatteryTimeItem::DrawRing(CDC* pDC, const CRect& ring_box, double percent, bool dark_mode)
+{
+    int side = ring_box.Width() < ring_box.Height() ? ring_box.Width() : ring_box.Height();
+    if (side < g_data.DPI(8))
+        return;
+    int radius = side / 2 - 1;
+    int cx = ring_box.left + ring_box.Width() / 2;
+    int cy = ring_box.top + ring_box.Height() / 2;
+
+    COLORREF track = dark_mode ? RGB(80, 80, 80) : RGB(200, 200, 200);
+    CPen track_pen(PS_SOLID, 2, track);
+    CPen* pOldPen = pDC->SelectObject(&track_pen);
+    pDC->Arc(cx - radius, cy - radius, cx + radius + 1, cy + radius + 1, cx, cy - radius, cx, cy - radius);
+    pDC->SelectObject(pOldPen);
+
+    COLORREF color = GetProgressColor(percent);
+    const double PI = 3.141592653589793;
+    int lit = static_cast<int>(60.0 * percent / 100.0 + 0.5);
+    for (int i = 0; i < lit && i < 60; i++)
+    {
+        double a = -PI / 2.0 + static_cast<double>(i) * 2.0 * PI / 60.0;
+        int px = cx + static_cast<int>(radius * cos(a));
+        int py = cy + static_cast<int>(radius * sin(a));
+        pDC->FillSolidRect(px - 1, py - 1, 3, 3, color);
     }
 }

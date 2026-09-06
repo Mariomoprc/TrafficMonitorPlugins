@@ -9,7 +9,8 @@ enum class ProgressStyle
 {
     SOLID,
     GRADIENT,
-    DOTS
+    DOTS,
+    RING
 };
 
 enum class TimeFormat
@@ -17,13 +18,6 @@ enum class TimeFormat
     HM,
     HM_CN,
     HHMM
-};
-
-enum class PomodoroPhase
-{
-    IDLE,
-    WORK,
-    BREAK
 };
 
 struct SettingData
@@ -54,11 +48,6 @@ struct SettingData
     bool show_seconds{};
     bool hide_zero{};
     std::wstring custom_format = L"{h}h {m}m";
-    bool pomodoro_enabled{};
-    int pomodoro_work_min{ 25 };
-    int pomodoro_break_min{ 5 };
-    bool pomodoro_auto_cycle{ true };
-    bool pomodoro_notify{ true };
 };
 
 class CDataManager
@@ -91,16 +80,7 @@ public:
     DWORD GetLastFullState() const { return m_last_full_state; }
     DWORD GetLastLowState() const { return m_last_low_state; }
     void SetLastFullState(DWORD s) { m_last_full_state = s; }
-    void SetLastLowState(DWORD s) { m_last_low_state = s; }
-    // Pomodoro countdown state machine (tick-based, ±1s accuracy)
-    void PomodoroToggle();
-    void PomodoroSkip();
-    void PomodoroReset();
-    bool PomodoroTick();
-    bool PomodoroVisible() const;
-    double PomodoroPercent() const;
-    std::wstring PomodoroText() const;
-    std::wstring PomodoroPhaseName() const;
+    void SetLastLowState(DWORD s) { m_last_low_state = s; };
 
 private:
     static CDataManager m_instance;
@@ -111,9 +91,4 @@ private:
     int m_preview_step{};
     DWORD m_last_full_state{};
     DWORD m_last_low_state{};
-    PomodoroPhase m_pomo_phase{ PomodoroPhase::IDLE };
-    ULONGLONG m_pomo_end_ms{};
-    ULONGLONG m_pomo_remain_ms{};
-    bool m_pomo_running{};
-    ULONGLONG PomodoroPhaseMs(PomodoroPhase ph) const;
 };
