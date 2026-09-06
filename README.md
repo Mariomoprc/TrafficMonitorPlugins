@@ -1,3 +1,12 @@
+# TrafficMonitor 插件集
+
+| 插件 | 说明 | 文档 |
+|------|------|------|
+| BatteryTime | 电池剩余时间（+番茄钟模式） | 见下文 |
+| AILimit | AI 额度（Go/OpenRouter/DeepSeek） | [Plugins/AILimit/README.md](Plugins/AILimit/README.md) |
+
+---
+
 # BatteryTime - TrafficMonitor 电池剩余时间插件
 
 用于在任务栏显示电池剩余时间的 TrafficMonitor 插件，支持进度条、自定义格式、深色/浅色模式自动适配。

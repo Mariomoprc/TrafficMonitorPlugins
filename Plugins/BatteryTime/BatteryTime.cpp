@@ -48,6 +48,7 @@ void CBatteryTime::DataRequired()
     GetSystemPowerStatus(&g_data.m_sysPowerStatus);
 
     g_data.UpdatePreview();
+    g_data.PomodoroTick();
 
     std::wstringstream wss;
     wss << L"Battery: " << g_data.m_sysPowerStatus.BatteryLifePercent << L"%";
@@ -55,6 +56,8 @@ void CBatteryTime::DataRequired()
         wss << L" (Charging)";
     if (g_data.m_sysPowerStatus.BatteryLifeTime != -1)
         wss << std::endl << L"Remaining: " << CCommon::TimeFormat(g_data.m_sysPowerStatus.BatteryLifeTime);
+    if (g_data.PomodoroVisible())
+        wss << std::endl << L"\x756A\x8309\x949F: " << g_data.PomodoroPhaseName() << L" " << g_data.PomodoroText();
     m_tooltip_info = wss.str();
 
     if (g_data.IsPreviewActive())
