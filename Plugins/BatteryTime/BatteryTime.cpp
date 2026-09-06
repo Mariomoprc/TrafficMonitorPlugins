@@ -201,7 +201,7 @@ const wchar_t* CBatteryTime::GetInfo(PluginInfoIndex index)
     case ITMPlugin::TMI_URL:
         return L"https://github.com/Mariomoprc/TrafficMonitorPlugins";
     case TMI_VERSION:
-        return L"1.00";
+        return L"1.10";
     default:
         break;
     }
