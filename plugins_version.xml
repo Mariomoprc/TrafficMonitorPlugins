@@ -14,4 +14,5 @@
     <plugin file_name="KeyboardIndicator.dll" version="1.00"/>
     <plugin file_name="LoudnessMeter.dll" version="1.00"/>
     <plugin file_name="AILimitPlugin.dll" version="1.2.3"/>
+    <plugin file_name="BatteryTime.dll" version="1.12"/>
 </plugins>

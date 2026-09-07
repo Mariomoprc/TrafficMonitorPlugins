@@ -44,7 +44,9 @@ BEGIN_MESSAGE_MAP(COptionsDlg, CDialog)
     ON_BN_CLICKED(IDC_LOW_BATTERY_CHECK, &COptionsDlg::OnBnClickedLowBatteryCheck)
     ON_EN_CHANGE(IDC_LOW_BATTERY_THRESHOLD_EDIT, &COptionsDlg::OnEnChangeLowBatteryThresholdEdit)
     ON_BN_CLICKED(IDC_SHOW_TOOLTIP_CHECK, &COptionsDlg::OnBnClickedShowTooltipCheck)
+    ON_BN_CLICKED(IDC_SHOW_CHARGING_CHECK, &COptionsDlg::OnBnClickedShowChargingCheck)
     ON_BN_CLICKED(IDC_APPLY_BUTTON, &COptionsDlg::OnBnClickedApplyButton)
+    ON_BN_CLICKED(IDC_DEFAULT_BUTTON, &COptionsDlg::OnBnClickedDefaultButton)
     ON_WM_TIMER()
     ON_WM_CTLCOLOR()
     ON_BN_CLICKED(IDC_SHOW_DAYS_CHECK, &COptionsDlg::OnBnClickedShowDaysCheck)
@@ -61,7 +63,6 @@ BOOL COptionsDlg::OnInitDialog()
     m_progress_style_combo.AddString(L"\x6E10\x53D8");
     m_progress_style_combo.AddString(L"\x5706\x70B9");
     m_progress_style_combo.AddString(L"\x5706\x73AF");
-    m_progress_style_combo.SetCurSel(static_cast<int>(m_data.progress_style));
 
     m_time_format_combo.AddString(L"Xh Xm");
     m_time_format_combo.AddString(L"X:MM");
@@ -70,13 +71,22 @@ BOOL COptionsDlg::OnInitDialog()
     m_time_format_combo.AddString(L"Xd Xh Xm");
     m_time_format_combo.AddString(L"Xm Xs");
     m_time_format_combo.AddString(L"\x81EA\x5B9A\x4E49");
-    m_time_format_combo.SetCurSel(static_cast<int>(m_data.time_format));
 
-    CheckDlgButton(IDC_PREVIEW_CHECK, m_data.preview_mode);
+    SyncControls();
+
+    SetTimer(1, 1500, NULL);
+
+    return TRUE;
+}
+
+void COptionsDlg::SyncControls()
+{
+    m_progress_style_combo.SetCurSel(static_cast<int>(m_data.progress_style));
     CheckDlgButton(m_data.progress_bar_above ? IDC_PROGRESS_ABOVE_RADIO : IDC_PROGRESS_BELOW_RADIO, BST_CHECKED);
     CheckDlgButton(IDC_SHOW_LABEL_CHECK, m_data.show_label);
     CheckDlgButton(IDC_LOW_BATTERY_CHECK, m_data.low_battery_warning);
     CheckDlgButton(IDC_SHOW_TOOLTIP_CHECK, m_data.show_battery_in_tooltip);
+    CheckDlgButton(IDC_SHOW_CHARGING_CHECK, m_data.show_charging_display);
     CheckDlgButton(IDC_SHOW_DAYS_CHECK, m_data.show_days);
     CheckDlgButton(IDC_SHOW_SECONDS_CHECK, m_data.show_seconds);
     CheckDlgButton(IDC_HIDE_ZERO_CHECK, m_data.hide_zero);
@@ -92,10 +102,11 @@ BOOL COptionsDlg::OnInitDialog()
     str.Format(L"%d", m_data.low_battery_threshold);
     m_low_battery_threshold_edit.SetWindowText(str);
     m_custom_format_edit.SetWindowText(m_data.custom_format.c_str());
+    m_time_format_combo.SetCurSel(static_cast<int>(m_data.time_format));
+    CheckDlgButton(IDC_PREVIEW_CHECK, m_data.preview_mode);
 
-    SetTimer(1, 1500, NULL);
-
-    return TRUE;
+    m_label_text_edit.EnableWindow(m_data.show_label);
+    m_low_battery_threshold_edit.EnableWindow(m_data.low_battery_warning);
 }
 
 void COptionsDlg::RefreshPreview()
@@ -186,6 +197,35 @@ static COLORREF PreviewGetProgressColor(const SettingData& data, double percent)
     }
 }
 
+static void PreviewDrawRing(CDC* pDC, int cx, int cy, int radius, const SettingData& data, double percent)
+{
+    if (radius < 4)
+        return;
+    const double PI = 3.141592653589793;
+    CPen track_pen(PS_SOLID, 2, RGB(90, 90, 90));
+    CPen* pOldPen = pDC->SelectObject(&track_pen);
+    pDC->Arc(cx - radius, cy - radius, cx + radius + 1, cy + radius + 1, cx, cy - radius, cx, cy - radius);
+    pDC->SelectObject(pOldPen);
+
+    COLORREF color = PreviewGetProgressColor(data, percent);
+    if (data.low_battery_warning && percent <= data.low_battery_threshold)
+        color = data.color_critical;
+    COLORREF halo = PreviewLerpColor(color, RGB(30, 30, 30), 0.55);
+    int lit = static_cast<int>(60.0 * percent / 100.0 + 0.5);
+    for (int i = 0; i < lit && i < 60; i++)
+    {
+        double a = -PI / 2.0 + static_cast<double>(i) * 2.0 * PI / 60.0;
+        int px = cx + static_cast<int>(radius * cos(a));
+        int py = cy + static_cast<int>(radius * sin(a));
+        CBrush halo_brush(halo);
+        CRect halo_rect(px - 2, py - 2, px + 3, py + 3);
+        pDC->FillRect(&halo_rect, &halo_brush);
+        CBrush core_brush(color);
+        CRect core_rect(px - 1, py - 1, px + 2, py + 2);
+        pDC->FillRect(&core_rect, &core_brush);
+    }
+}
+
 void COptionsDlg::DrawPreview()
 {
     if (!m_preview_static.GetSafeHwnd())
@@ -261,17 +301,34 @@ void COptionsDlg::DrawPreview()
     if (m_data.low_battery_warning && percent <= m_data.low_battery_threshold)
         text_color = m_data.color_critical;
 
+    bool is_ring = (m_data.progress_style == ProgressStyle::RING);
+    int ring_d = 0;
+    if (is_ring)
+    {
+        ring_d = font_height + DPI(8);
+        int max_d = rect.Height() - DPI(4);
+        if (ring_d > max_d)
+            ring_d = max_d;
+        int ring_r = ring_d / 2 - 1;
+        int ring_cx = ring_d / 2 + DPI(2);
+        int ring_cy = rect.Height() / 2;
+        PreviewDrawRing(pDC, ring_cx, ring_cy, ring_r, m_data, percent);
+        draw_text_rect.left = ring_d + DPI(6);
+    }
+
     if (m_data.text_shadow)
     {
         pDC->SetTextColor(RGB(0, 0, 0));
         CRect shadow_rect = draw_text_rect;
         shadow_rect.OffsetRect(1, 1);
-        pDC->DrawText(display_str, shadow_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+        pDC->DrawText(display_str, shadow_rect, (is_ring ? DT_LEFT : DT_CENTER) | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
     }
 
     pDC->SetTextColor(text_color);
-    pDC->DrawText(display_str, draw_text_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+    pDC->DrawText(display_str, draw_text_rect, (is_ring ? DT_LEFT : DT_CENTER) | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 
+    if (!is_ring)
+    {
     int progress_x = (rect.Width() - max_bar_width) / 2;
     if (progress_x < 0) progress_x = 0;
 
@@ -322,6 +379,7 @@ void COptionsDlg::DrawPreview()
             }
         }
         break;
+    }
     }
     }
 
@@ -445,6 +503,7 @@ void COptionsDlg::OnCbnSelchangeTimeFormatCombo()
 void COptionsDlg::OnBnClickedShowLabelCheck()
 {
     m_data.show_label = (IsDlgButtonChecked(IDC_SHOW_LABEL_CHECK) != 0);
+    m_label_text_edit.EnableWindow(m_data.show_label);
     RefreshPreview();
 }
 
@@ -459,6 +518,7 @@ void COptionsDlg::OnEnChangeLabelTextEdit()
 void COptionsDlg::OnBnClickedLowBatteryCheck()
 {
     m_data.low_battery_warning = (IsDlgButtonChecked(IDC_LOW_BATTERY_CHECK) != 0);
+    m_low_battery_threshold_edit.EnableWindow(m_data.low_battery_warning);
     RefreshPreview();
 }
 
@@ -480,10 +540,22 @@ void COptionsDlg::OnBnClickedShowTooltipCheck()
     RefreshPreview();
 }
 
+void COptionsDlg::OnBnClickedShowChargingCheck()
+{
+    m_data.show_charging_display = (IsDlgButtonChecked(IDC_SHOW_CHARGING_CHECK) != 0);
+}
+
 void COptionsDlg::OnBnClickedApplyButton()
 {
     g_data.m_setting_data = m_data;
     g_data.SaveConfig();
+}
+
+void COptionsDlg::OnBnClickedDefaultButton()
+{
+    m_data = SettingData();
+    SyncControls();
+    RefreshPreview();
 }
 
 void COptionsDlg::OnBnClickedShowDaysCheck()

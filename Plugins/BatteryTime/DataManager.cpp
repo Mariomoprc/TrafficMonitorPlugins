@@ -59,6 +59,7 @@ void CDataManager::LoadConfig(const std::wstring& config_dir)
     m_setting_data.low_battery_warning = (GetPrivateProfileInt(L"config", L"low_battery_warning", 0, m_config_path.c_str()) != 0);
     m_setting_data.low_battery_threshold = GetPrivateProfileInt(L"config", L"low_battery_threshold", 20, m_config_path.c_str());
     m_setting_data.show_battery_in_tooltip = (GetPrivateProfileInt(L"config", L"show_battery_in_tooltip", 1, m_config_path.c_str()) != 0);
+    m_setting_data.show_charging_display = (GetPrivateProfileInt(L"config", L"show_charging_display", 0, m_config_path.c_str()) != 0);
     m_setting_data.auto_theme = (GetPrivateProfileInt(L"config", L"auto_theme", 0, m_config_path.c_str()) != 0);
     m_setting_data.text_shadow = (GetPrivateProfileInt(L"config", L"text_shadow", 1, m_config_path.c_str()) != 0);
     m_setting_data.smooth_color = (GetPrivateProfileInt(L"config", L"smooth_color", 1, m_config_path.c_str()) != 0);
@@ -97,6 +98,7 @@ void CDataManager::SaveConfig() const
         WritePrivateProfileInt(L"config", L"low_battery_warning", m_setting_data.low_battery_warning, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"low_battery_threshold", m_setting_data.low_battery_threshold, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"show_battery_in_tooltip", m_setting_data.show_battery_in_tooltip, m_config_path.c_str());
+        WritePrivateProfileInt(L"config", L"show_charging_display", m_setting_data.show_charging_display, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"auto_theme", m_setting_data.auto_theme, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"text_shadow", m_setting_data.text_shadow, m_config_path.c_str());
         WritePrivateProfileInt(L"config", L"smooth_color", m_setting_data.smooth_color, m_config_path.c_str());

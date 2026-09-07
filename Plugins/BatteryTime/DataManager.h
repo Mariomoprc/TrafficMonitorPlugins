@@ -38,6 +38,7 @@ struct SettingData
     bool low_battery_warning{};
     int low_battery_threshold{ 20 };
     bool show_battery_in_tooltip{};
+    bool show_charging_display{};
     bool auto_theme{};
     bool text_shadow{ true };
     bool smooth_color{ true };

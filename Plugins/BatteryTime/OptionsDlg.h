@@ -31,6 +31,7 @@ private:
 
     void DrawPreview();
     void RefreshPreview();
+    void SyncControls();
     std::wstring FormatTimeForPreview(double percent) const;
 
 protected:
@@ -53,7 +54,9 @@ public:
     afx_msg void OnBnClickedLowBatteryCheck();
     afx_msg void OnEnChangeLowBatteryThresholdEdit();
     afx_msg void OnBnClickedShowTooltipCheck();
+    afx_msg void OnBnClickedShowChargingCheck();
     afx_msg void OnBnClickedApplyButton();
+    afx_msg void OnBnClickedDefaultButton();
     afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnPaintPreview();
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);

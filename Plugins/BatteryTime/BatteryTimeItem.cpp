@@ -89,14 +89,24 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
 
     double percent = 0.0;
     std::wstring time_str = g_data.m_time_string;
+    bool charging = false;
     if (g_data.IsPreviewActive())
     {
         percent = g_data.m_preview_percent;
     }
+    else if (g_data.IsAcOnline())
+    {
+        if (!g_data.m_setting_data.show_charging_display)
+            return;
+        charging = true;
+        if (g_data.m_sysPowerStatus.BatteryFlag != 128)
+            percent = g_data.m_sysPowerStatus.BatteryLifePercent;
+        else
+            percent = 100.0;
+        time_str = g_data.StringRes(IDS_BATTERY_TIME_CHARGING).GetString();
+    }
     else
     {
-        if (g_data.IsAcOnline())
-            return;
         if (g_data.m_sysPowerStatus.BatteryFlag != 128)
             percent = g_data.m_sysPowerStatus.BatteryLifePercent;
     }
@@ -125,7 +135,7 @@ void CBatteryTimeItem::DrawItem(void* hDC, int x, int y, int w, int h, bool dark
 
     COLORREF text_color = g_data.GetTextColor();
 
-    if (g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
+    if (!charging && g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
         text_color = g_data.m_setting_data.color_critical;
 
     pDC->SetBkMode(TRANSPARENT);
@@ -283,6 +293,9 @@ void CBatteryTimeItem::DrawRing(CDC* pDC, const CRect& ring_box, double percent,
     pDC->SelectObject(pOldPen);
 
     COLORREF color = GetProgressColor(percent);
+    if (g_data.m_setting_data.low_battery_warning && percent <= g_data.m_setting_data.low_battery_threshold)
+        color = g_data.m_setting_data.color_critical;
+    COLORREF halo = LerpColor(color, dark_mode ? RGB(24, 24, 24) : RGB(235, 235, 235), 0.55);
     const double PI = 3.141592653589793;
     int lit = static_cast<int>(60.0 * percent / 100.0 + 0.5);
     for (int i = 0; i < lit && i < 60; i++)
@@ -290,6 +303,7 @@ void CBatteryTimeItem::DrawRing(CDC* pDC, const CRect& ring_box, double percent,
         double a = -PI / 2.0 + static_cast<double>(i) * 2.0 * PI / 60.0;
         int px = cx + static_cast<int>(radius * cos(a));
         int py = cy + static_cast<int>(radius * sin(a));
+        pDC->FillSolidRect(px - 2, py - 2, 5, 5, halo);
         pDC->FillSolidRect(px - 1, py - 1, 3, 3, color);
     }
 }
